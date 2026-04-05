@@ -1,0 +1,291 @@
+# EduPlatform — Step-by-Step Setup Guide
+# JavaScript only (no TypeScript)
+
+==========================================================
+STEP 1 — SET UP THE DATABASE (Supabase — Free)
+==========================================================
+
+1. Go to https://supabase.com → Sign up → New Project
+2. Choose a name, password, and region (e.g. South Asia)
+3. Wait ~2 min for setup, then go to:
+   Settings → Database → Connection String → "URI"
+4. Copy the URI. It looks like:
+   postgresql://postgres:[YOUR-PASSWORD]@db.xxxx.supabase.co:5432/postgres
+
+That is your DATABASE_URL.
+
+==========================================================
+STEP 2 — SET UP AWS S3 (Private Bucket for PDFs)
+==========================================================
+
+1. Go to https://aws.amazon.com → Sign in → S3
+2. Click "Create bucket"
+   - Bucket name: eduplatform-pdfs
+   - Region: ap-south-1 (Mumbai) or any
+   - Block ALL public access: YES (keep checked)
+   - Click Create
+
+3. Go to IAM → Users → Create User
+   - Name: eduplatform-s3-user
+   - Attach policy → Create inline policy → paste this JSON:
+     {
+       "Version": "2012-10-17",
+       "Statement": [{
+         "Effect": "Allow",
+         "Action": ["s3:GetObject","s3:PutObject","s3:DeleteObject"],
+         "Resource": "arn:aws:s3:::eduplatform-pdfs/*"
+       }]
+     }
+   - Create user → Security credentials → Create access key
+   - Save: Access Key ID and Secret Access Key
+
+4. Add CORS to your bucket:
+   S3 → eduplatform-pdfs → Permissions → CORS → Edit → paste:
+   [
+     {
+       "AllowedHeaders": ["*"],
+       "AllowedMethods": ["GET","PUT"],
+       "AllowedOrigins": ["http://localhost:3000"],
+       "ExposeHeaders": []
+     }
+   ]
+
+==========================================================
+STEP 3 — SET UP TWILIO (OTP SMS)
+==========================================================
+
+1. Go to https://twilio.com → Sign up (free trial gives $15 credit)
+2. Get a phone number (free trial)
+3. From Console Dashboard, copy:
+   - Account SID
+   - Auth Token
+   - Your Twilio phone number (format: +1XXXXXXXXXX)
+
+NOTE: In dev mode, OTP is logged to terminal (no SMS sent).
+      SMS only sends when NODE_ENV=production.
+
+==========================================================
+STEP 4 — SET UP RAZORPAY (Payments)
+==========================================================
+
+1. Go to https://razorpay.com → Sign up
+2. Dashboard → Settings → API Keys → Generate Test Key
+3. Copy:
+   - Key ID (starts with rzp_test_)
+   - Key Secret
+
+==========================================================
+STEP 5 — CONFIGURE BACKEND .env
+==========================================================
+
+In /backend folder, create a file called .env (copy from .env.example):
+
+------- PASTE THIS into backend/.env -------
+
+NODE_ENV=development
+PORT=5000
+FRONTEND_URL=http://localhost:3000
+
+DATABASE_URL=postgresql://postgres:YOURPASSWORD@db.YOURPROJECT.supabase.co:5432/postgres
+
+JWT_SECRET=make_this_random_at_least_32_characters_long
+JWT_EXPIRES_IN=7d
+JWT_REFRESH_SECRET=another_random_secret_different_from_above
+JWT_REFRESH_EXPIRES_IN=30d
+
+TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_PHONE_NUMBER=+1234567890
+
+AWS_REGION=ap-south-1
+AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+AWS_S3_BUCKET_NAME=eduplatform-pdfs
+AWS_S3_SIGNED_URL_EXPIRY=300
+
+RAZORPAY_KEY_ID=rzp_test_XXXXXXXXXX
+RAZORPAY_KEY_SECRET=your_razorpay_secret
+
+ADMIN_EMAIL=admin@eduplatform.com
+ADMIN_PASSWORD=Admin@123456
+
+--------------------------------------------
+
+==========================================================
+STEP 6 — CONFIGURE FRONTEND .env.local
+==========================================================
+
+In /frontend folder, create a file called .env.local:
+
+------- PASTE THIS into frontend/.env.local -------
+
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_test_XXXXXXXXXX
+
+---------------------------------------------------
+
+==========================================================
+STEP 7 — RUN DATABASE MIGRATIONS
+==========================================================
+
+Open terminal in the /backend folder:
+
+  npx prisma generate
+  npx prisma db push
+  node prisma/seed.js
+
+You should see:
+  ✅ Admin user seeded: admin@eduplatform.com
+  ✅ Sample course seeded
+
+==========================================================
+STEP 8 — START BACKEND SERVER
+==========================================================
+
+In /backend folder:
+
+  npm run dev
+
+You should see:
+  ✅ Database connected successfully
+  🚀 Server running on port 5000 in development mode
+
+Test it: open http://localhost:5000/health in browser
+Should show: {"status":"ok","timestamp":"..."}
+
+==========================================================
+STEP 9 — START FRONTEND
+==========================================================
+
+Open a NEW terminal in /frontend folder:
+
+  npm run dev
+
+Open http://localhost:3000 in browser
+
+==========================================================
+STEP 10 — TEST THE APP
+==========================================================
+
+ADMIN LOGIN:
+  URL:      http://localhost:3000/auth/login
+  Tab:      Admin
+  Email:    admin@eduplatform.com
+  Password: Admin@123456
+
+  → You'll be taken to /admin dashboard
+
+STUDENT LOGIN:
+  Tab:   Student
+  Phone: +91XXXXXXXXXX (your number with country code)
+  → OTP will print in backend terminal (dev mode)
+  → Enter OTP → Logged in as student
+
+==========================================================
+STEP 11 — CREATE YOUR FIRST COURSE (Admin)
+==========================================================
+
+1. Login as admin → click "New Course"
+2. Fill in title, description
+3. Set price OR check "Free Course"
+4. Upload thumbnail (optional)
+5. Click "Create Course"
+6. Click "Manage" → Add chapters → Upload PDFs per chapter
+7. Click "Publish" toggle to make it visible to students
+
+==========================================================
+ADDING NEW FILES — JAVASCRIPT RULES
+==========================================================
+
+Use .jsx for React components (pages, components)
+Use .js  for utility files, helpers, configs
+
+Example new page in /frontend/src/app/about/page.jsx:
+
+  'use client';
+  export default function AboutPage() {
+    return <div>About us</div>;
+  }
+
+Example new component in /frontend/src/components/ui/Button.jsx:
+
+  export default function Button({ children, onClick, disabled }) {
+    return (
+      <button onClick={onClick} disabled={disabled} className="btn-primary">
+        {children}
+      </button>
+    );
+  }
+
+Example new backend route in /backend/src/routes/example.routes.js:
+
+  const express = require('express');
+  const router = express.Router();
+
+  router.get('/', (req, res) => {
+    res.json({ success: true, message: 'Hello' });
+  });
+
+  module.exports = router;
+
+Then register it in /backend/src/index.js:
+  const exampleRoutes = require('./routes/example.routes');
+  app.use('/api/example', exampleRoutes);
+
+==========================================================
+COMMON ERRORS & FIXES
+==========================================================
+
+ERROR: "Cannot find module '@/lib/axios'"
+FIX:   Make sure you have this in frontend/next.config.js:
+       No change needed — @/ maps to src/ automatically in Next.js
+
+ERROR: "PrismaClientInitializationError"
+FIX:   Your DATABASE_URL is wrong. Double-check Supabase URI.
+       Run: npx prisma db push  (re-run migration)
+
+ERROR: "Invalid OTP" but you see it in terminal
+FIX:   OTP expires in 10 minutes. Try again fresh.
+
+ERROR: "S3 Access Denied"
+FIX:   Check IAM policy is attached to the user.
+       Make sure bucket name matches AWS_S3_BUCKET_NAME in .env
+
+ERROR: Port 5000 already in use
+FIX:   Change PORT=5001 in backend/.env
+
+ERROR: Razorpay "key_id is required"
+FIX:   Add NEXT_PUBLIC_RAZORPAY_KEY_ID in frontend/.env.local
+
+==========================================================
+FOLDER STRUCTURE REMINDER
+==========================================================
+
+eduplatform/
+├── backend/
+│   ├── .env                ← YOU CREATE THIS
+│   ├── src/
+│   │   ├── controllers/    ← Business logic
+│   │   ├── routes/         ← API endpoints
+│   │   ├── middleware/     ← Auth, error handling
+│   │   ├── config/         ← DB, S3, Razorpay setup
+│   │   └── utils/          ← JWT, OTP, logger
+│   └── prisma/
+│       ├── schema.prisma   ← Database models
+│       └── seed.js         ← Creates admin user
+│
+└── frontend/
+    ├── .env.local          ← YOU CREATE THIS
+    └── src/
+        ├── app/            ← Pages (Next.js App Router)
+        │   ├── page.jsx           → Landing page
+        │   ├── auth/login/        → Login page
+        │   ├── dashboard/         → Student view
+        │   ├── course/[id]/       → Course + PDF viewer
+        │   └── admin/             → Admin panel
+        ├── lib/            ← Shared utilities
+        │   ├── axios.js    → API client
+        │   ├── auth.js     → Token helpers
+        │   ├── store.js    → User state (Zustand)
+        │   └── utils.js    → Helper functions
+        └── components/     ← Reusable UI components
