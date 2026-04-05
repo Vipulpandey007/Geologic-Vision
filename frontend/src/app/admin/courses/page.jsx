@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import {
@@ -17,24 +16,19 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import api from "@/lib/axios";
-import { useAuthStore } from "@/lib/store";
+import { useAuth } from "@/hooks/useAuth";
 import { formatCurrency, formatDate, getErrorMessage } from "@/lib/utils";
 
 export default function AdminCoursesPage() {
-  const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, isReady } = useAuth("ADMIN");
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(null);
   const [toggling, setToggling] = useState(null);
 
   useEffect(() => {
-    if (!user || user.role !== "ADMIN") {
-      router.replace("/auth/login");
-      return;
-    }
-    loadCourses();
-  }, [user]);
+    if (isReady) loadCourses();
+  }, [isReady]);
 
   async function loadCourses() {
     try {
@@ -87,6 +81,13 @@ export default function AdminCoursesPage() {
     }
   }
 
+  if (!isReady)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
+      </div>
+    );
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b sticky top-0 z-40">
@@ -104,7 +105,6 @@ export default function AdminCoursesPage() {
           </Link>
         </div>
       </header>
-
       <main className="max-w-6xl mx-auto px-6 py-8">
         {loading ? (
           <div className="grid md:grid-cols-2 gap-4">
@@ -121,9 +121,6 @@ export default function AdminCoursesPage() {
             <h2 className="font-display text-xl font-semibold text-gray-600 mb-2">
               No courses yet
             </h2>
-            <p className="text-gray-400 mb-6">
-              Create your first course to get started
-            </p>
             <Link href="/admin/courses/new" className="btn-primary">
               <Plus className="w-4 h-4" /> Create Course
             </Link>
@@ -132,7 +129,7 @@ export default function AdminCoursesPage() {
           <div className="grid md:grid-cols-2 gap-4">
             {courses.map((course) => (
               <div key={course.id} className="card p-5 flex flex-col gap-4">
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5">
                       <span

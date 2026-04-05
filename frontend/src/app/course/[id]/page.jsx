@@ -15,24 +15,22 @@ import {
 } from "lucide-react";
 import api from "@/lib/axios";
 import { useAuthStore } from "@/lib/store";
+import { useAuth } from "@/hooks/useAuth";
 import { formatCurrency, getErrorMessage } from "@/lib/utils";
 
 export default function CoursePage() {
   const { id } = useParams();
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, isReady } = useAuth(null);
   const [course, setCourse] = useState(null);
   const [hasPurchased, setHasPurchased] = useState(false);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
 
   useEffect(() => {
-    if (!user) {
-      router.replace("/auth/login");
-      return;
-    }
+    // handled by useAuth
     loadCourse();
-  }, [user, id]);
+  }, [isReady, id]);
 
   async function loadCourse() {
     try {

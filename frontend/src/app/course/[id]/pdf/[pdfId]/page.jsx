@@ -15,12 +15,11 @@ import {
   BookOpen,
 } from "lucide-react";
 import api from "@/lib/axios";
-import { useAuthStore } from "@/lib/store";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function PdfViewerPage() {
   const { id: courseId, pdfId } = useParams();
-  const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, isReady } = useAuth(null);
   const canvasRef = useRef(null);
   const renderTaskRef = useRef(null);
 
@@ -34,18 +33,17 @@ export default function PdfViewerPage() {
   const [scale, setScale] = useState(1.2);
   const [rendering, setRendering] = useState(false);
 
+  // Only load after auth is ready
   useEffect(() => {
-    if (!user) {
-      router.replace("/auth/login");
-      return;
-    }
+    if (!isReady) return;
     loadPdf();
-  }, [user, pdfId]);
+  }, [isReady, pdfId]);
 
   useEffect(() => {
     if (pdfDoc) renderPage(currentPage);
   }, [pdfDoc, currentPage, scale]);
 
+  // Disable right-click and print shortcuts
   useEffect(() => {
     const handleContextMenu = (e) => e.preventDefault();
     const handleKeyDown = (e) => {
@@ -54,7 +52,7 @@ export default function PdfViewerPage() {
         ["p", "s", "u"].includes(e.key.toLowerCase())
       ) {
         e.preventDefault();
-        toast.error("Saving and printing is disabled for this content.");
+        toast.error("Saving and printing is disabled.");
       }
     };
     document.addEventListener("contextmenu", handleContextMenu);
@@ -69,20 +67,42 @@ export default function PdfViewerPage() {
     try {
       setLoading(true);
       setError("");
+
+      // Step 1 — get signed URL from backend
       const { data } = await api.get(`/pdfs/${pdfId}/view`);
       setPdfInfo(data.pdf);
       setWatermark(data.watermark);
 
-      const pdfjsLib = await import("pdfjs-dist");
-      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+      // Step 2 — fetch PDF as ArrayBuffer via our backend proxy
+      // This avoids CORS issues with direct Supabase signed URLs
+      const proxyUrl = `${process.env.NEXT_PUBLIC_API_URL}/pdfs/${pdfId}/proxy`;
+      const token = document.cookie.match(/accessToken=([^;]+)/)?.[1];
 
-      const doc = await pdfjsLib.getDocument({ url: data.signedUrl }).promise;
+      const pdfResponse = await fetch(proxyUrl, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!pdfResponse.ok) {
+        throw new Error("Failed to fetch PDF content");
+      }
+
+      const pdfBuffer = await pdfResponse.arrayBuffer();
+
+      // Step 3 — load with PDF.js from buffer (no CORS issue)
+      const pdfjsLib = await import("pdfjs-dist");
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs`;
+      `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+
+      const doc = await pdfjsLib.getDocument({ data: pdfBuffer }).promise;
       setPdfDoc(doc);
       setTotalPages(doc.numPages);
       setCurrentPage(1);
     } catch (err) {
+      console.error("PDF load error:", err);
       const msg =
-        err?.response?.data?.message || "Failed to load PDF. Please try again.";
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to load PDF. Please try again.";
       setError(msg);
     } finally {
       setLoading(false);
@@ -149,11 +169,20 @@ export default function PdfViewerPage() {
     );
   }
 
+  if (!isReady) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-400" />
+      </div>
+    );
+  }
+
   return (
     <div
       className="min-h-screen bg-gray-900 flex flex-col select-none"
       onContextMenu={(e) => e.preventDefault()}
     >
+      {/* Toolbar */}
       <div className="bg-gray-800 border-b border-gray-700 px-4 h-14 flex items-center gap-3 flex-shrink-0">
         <Link
           href={`/course/${courseId}`}
@@ -208,6 +237,7 @@ export default function PdfViewerPage() {
         </div>
       </div>
 
+      {/* PDF Content */}
       <div className="flex-1 overflow-auto flex items-start justify-center p-6 pdf-viewer-container">
         {loading && (
           <div className="flex flex-col items-center justify-center py-20 text-gray-400">
@@ -215,6 +245,7 @@ export default function PdfViewerPage() {
             <p className="text-sm">Loading secure PDF...</p>
           </div>
         )}
+
         {error && (
           <div className="flex flex-col items-center justify-center py-20 text-center max-w-md">
             <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
@@ -228,6 +259,7 @@ export default function PdfViewerPage() {
             </button>
           </div>
         )}
+
         {!loading && !error && (
           <div className="relative shadow-2xl">
             {rendering && (
@@ -244,6 +276,7 @@ export default function PdfViewerPage() {
         )}
       </div>
 
+      {/* Mobile page nav */}
       {totalPages > 1 && (
         <div className="bg-gray-800 border-t border-gray-700 px-4 py-3 flex items-center justify-center gap-4 md:hidden">
           <button

@@ -14,11 +14,12 @@ import {
 } from "lucide-react";
 import api from "@/lib/axios";
 import { useAuthStore } from "@/lib/store";
+import { useAuth } from "@/hooks/useAuth";
 import { formatDate, getErrorMessage } from "@/lib/utils";
 
 export default function AdminStudentsPage() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, isReady } = useAuth("ADMIN");
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -27,10 +28,7 @@ export default function AdminStudentsPage() {
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    if (!user || user.role !== "ADMIN") {
-      router.replace("/auth/login");
-      return;
-    }
+    // handled by useAuth
     loadStudents();
   }, [user, page, search]);
 

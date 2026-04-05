@@ -19,12 +19,13 @@ import {
 } from "lucide-react";
 import api from "@/lib/axios";
 import { useAuthStore } from "@/lib/store";
+import { useAuth } from "@/hooks/useAuth";
 import { getErrorMessage } from "@/lib/utils";
 
 export default function AdminCourseDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, isReady } = useAuth("ADMIN");
   const [course, setCourse] = useState(null);
   const [chapters, setChapters] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,12 +36,9 @@ export default function AdminCourseDetailPage() {
   const [pdfForms, setPdfForms] = useState({});
 
   useEffect(() => {
-    if (!user || user.role !== "ADMIN") {
-      router.replace("/auth/login");
-      return;
-    }
+    // handled by useAuth
     loadCourse();
-  }, [user, id]);
+  }, [isReady, id]);
 
   async function loadCourse() {
     try {

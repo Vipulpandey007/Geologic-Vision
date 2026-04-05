@@ -6,21 +6,19 @@ import toast from "react-hot-toast";
 import { ArrowLeft, BookOpen, ChevronRight, ShoppingBag } from "lucide-react";
 import api from "@/lib/axios";
 import { useAuthStore } from "@/lib/store";
+import { useAuth } from "@/hooks/useAuth";
 import { formatDate, getErrorMessage } from "@/lib/utils";
 
 export default function MyCoursesPage() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, isReady } = useAuth(null);
   const [purchases, setPurchases] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
-      router.replace("/auth/login");
-      return;
-    }
+    // handled by useAuth
     loadPurchases();
-  }, [user]);
+  }, [isReady]);
 
   async function loadPurchases() {
     try {

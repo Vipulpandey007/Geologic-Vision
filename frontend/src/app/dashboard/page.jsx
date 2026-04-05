@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import {
@@ -12,15 +11,19 @@ import {
   Lock,
   Unlock,
   Star,
+  Loader2,
 } from "lucide-react";
 import api from "@/lib/axios";
 import { clearTokens } from "@/lib/auth";
 import { useAuthStore } from "@/lib/store";
+import { useAuth } from "@/hooks/useAuth";
 import { formatCurrency, getErrorMessage } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, setUser } = useAuthStore();
+  const { user, isReady } = useAuth("STUDENT");
+  const { setUser } = useAuthStore();
   const [courses, setCourses] = useState([]);
   const [purchases, setPurchases] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,16 +31,8 @@ export default function DashboardPage() {
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
-    if (!user) {
-      router.replace("/auth/login");
-      return;
-    }
-    if (user.role === "ADMIN") {
-      router.replace("/admin");
-      return;
-    }
-    loadData();
-  }, [user]);
+    if (isReady) loadData();
+  }, [isReady]);
 
   async function loadData() {
     try {
@@ -68,6 +63,15 @@ export default function DashboardPage() {
       (filter === "paid" && !c.isFree);
     return matchSearch && matchFilter;
   });
+
+  // Show spinner while hydrating — prevents flash redirect
+  if (!isReady) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -160,7 +164,7 @@ export default function DashboardPage() {
                   <div className="h-36 bg-gradient-to-br from-brand-100 to-indigo-100 relative overflow-hidden">
                     {course.thumbnail ? (
                       <img
-                        src={`/api/s3-proxy/${course.thumbnail}`}
+                        src={`${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "")}${course.thumbnail}`}
                         alt={course.title}
                         className="w-full h-full object-cover"
                       />

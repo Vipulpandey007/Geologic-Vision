@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import api from "@/lib/axios";
 import { useAuthStore } from "@/lib/store";
+import { useAuth } from "@/hooks/useAuth";
 import { formatCurrency, formatDate, getErrorMessage } from "@/lib/utils";
 
 const STATUS_CONFIG = {
@@ -30,7 +31,7 @@ const STATUS_CONFIG = {
 
 export default function AdminPaymentsPage() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, isReady } = useAuth("ADMIN");
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -38,10 +39,7 @@ export default function AdminPaymentsPage() {
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    if (!user || user.role !== "ADMIN") {
-      router.replace("/auth/login");
-      return;
-    }
+    // handled by useAuth
     loadPayments();
   }, [user, filter, page]);
 

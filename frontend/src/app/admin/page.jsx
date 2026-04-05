@@ -14,29 +14,24 @@ import {
   BookMarked,
   CreditCard,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
 import api from "@/lib/axios";
 import { clearTokens } from "@/lib/auth";
 import { useAuthStore } from "@/lib/store";
+import { useAuth } from "@/hooks/useAuth";
 import { formatCurrency, formatDate, getErrorMessage } from "@/lib/utils";
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { user, setUser } = useAuthStore();
+  const { user, isReady } = useAuth("ADMIN");
+  const { setUser } = useAuthStore();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
-      router.replace("/auth/login");
-      return;
-    }
-    if (user.role !== "ADMIN") {
-      router.replace("/dashboard");
-      return;
-    }
-    loadStats();
-  }, [user]);
+    if (isReady) loadStats();
+  }, [isReady]);
 
   async function loadStats() {
     try {
@@ -53,6 +48,14 @@ export default function AdminDashboard() {
     clearTokens();
     setUser(null);
     router.replace("/auth/login");
+  }
+
+  if (!isReady) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
+      </div>
+    );
   }
 
   const statCards = stats

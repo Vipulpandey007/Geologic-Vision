@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export const useAuthStore = create(
   persist(
@@ -11,8 +11,12 @@ export const useAuthStore = create(
       logout: () => set({ user: null, isLoading: false }),
     }),
     {
-      name: 'auth-storage',
+      name: "auth-storage",
       partialize: (state) => ({ user: state.user }),
-    }
-  )
+      // Called once hydration from localStorage is complete
+      onRehydrateStorage: () => (state) => {
+        if (state) state.isLoading = false;
+      },
+    },
+  ),
 );
