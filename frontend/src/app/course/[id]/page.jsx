@@ -61,7 +61,7 @@ export default function CoursePage() {
           order_id: data.order.id,
           amount: data.order.amount,
           currency: data.order.currency,
-          name: "EduPlatform",
+          name: "Geologic Vision",
           description: course.title,
           prefill: { contact: user.phone || "", email: user.email || "" },
           theme: { color: "#6172f3" },

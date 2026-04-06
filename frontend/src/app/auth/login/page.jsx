@@ -15,10 +15,10 @@ import {
   User,
   Sparkles,
 } from "lucide-react";
-import api from "../../../lib/axios";
-import { saveTokens } from "../../../lib/auth";
-import { useAuthStore } from "../../../lib/store";
-import { getErrorMessage } from "../../../lib/utils";
+import api from "@/lib/axios";
+import { saveTokens } from "@/lib/auth";
+import { useAuthStore } from "@/lib/store";
+import { getErrorMessage } from "@/lib/utils";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,7 +27,7 @@ export default function LoginPage() {
   const [mode, setMode] = useState("student");
   const [step, setStep] = useState("phone"); // 'phone' | 'otp' | 'name'
   const [loading, setLoading] = useState(false);
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState("+91");
   const [otp, setOtp] = useState("");
   const [name, setName] = useState("");
   const [isNewUser, setIsNewUser] = useState(false);
@@ -208,20 +208,47 @@ export default function LoginPage() {
                     <label className="text-sm font-medium text-gray-700">
                       Phone Number
                     </label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <input
-                        type="tel"
-                        className="input pl-10"
-                        placeholder="+91 98765 43210"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        required
-                        autoFocus
-                      />
+                    <div className="flex gap-2">
+                      {/* Country code selector */}
+                      <select
+                        className="input w-28 flex-shrink-0 bg-gray-50 font-medium"
+                        value={phone.match(/^\+\d+/)?.[0] || "+91"}
+                        onChange={(e) => {
+                          const digits = phone.replace(/^\+\d+/, "");
+                          setPhone(e.target.value + digits);
+                        }}
+                      >
+                        <option value="+91">🇮🇳 +91</option>
+                        <option value="+1">🇺🇸 +1</option>
+                        <option value="+44">🇬🇧 +44</option>
+                        <option value="+971">🇦🇪 +971</option>
+                        <option value="+65">🇸🇬 +65</option>
+                        <option value="+60">🇲🇾 +60</option>
+                        <option value="+61">🇦🇺 +61</option>
+                      </select>
+                      {/* Number input */}
+                      <div className="relative flex-1">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          type="tel"
+                          className="input pl-10 w-full"
+                          placeholder="98765 43210"
+                          value={phone.replace(/^\+\d+/, "")}
+                          onChange={(e) => {
+                            const digits = e.target.value.replace(
+                              /[^\d\s]/g,
+                              "",
+                            );
+                            const code = phone.match(/^\+\d+/)?.[0] || "+91";
+                            setPhone(code + digits);
+                          }}
+                          required
+                          autoFocus
+                        />
+                      </div>
                     </div>
                     <p className="text-xs text-gray-400">
-                      Include country code — India: +91, US: +1
+                      Select your country code, then enter your number
                     </p>
                   </div>
                   <button
