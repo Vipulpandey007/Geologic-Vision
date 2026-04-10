@@ -8,6 +8,7 @@ import {
   BookMarked,
   CreditCard,
   LogOut,
+  Shield,
 } from "lucide-react";
 import { clearTokens } from "@/lib/auth";
 import { useAuthStore } from "@/lib/store";
@@ -18,6 +19,7 @@ const navItems = [
   { href: "/admin/courses", label: "Courses", icon: BookMarked },
   { href: "/admin/students", label: "Students", icon: Users },
   { href: "/admin/payments", label: "Payments", icon: CreditCard },
+  { href: "/admin/sessions", label: "Sessions", icon: Shield },
 ];
 
 export default function AdminLayout({ children }) {
@@ -47,7 +49,7 @@ export default function AdminLayout({ children }) {
             <BookOpen className="w-4 h-4 text-white" />
           </div>
           <span className="font-display font-bold text-gray-900">
-            Geologic Vision
+            EduPlatform
           </span>
           <span className="ml-auto text-xs bg-brand-100 text-brand-700 font-semibold px-2 py-0.5 rounded-full">
             Admin

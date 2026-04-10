@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import {
@@ -24,10 +24,15 @@ export default function LoginPage() {
   const router = useRouter();
   const setUser = useAuthStore((s) => s.setUser);
 
+  const searchParams = useSearchParams();
+  const wasRevoked = searchParams.get("reason") === "session_revoked";
+
   const [mode, setMode] = useState("student");
   const [step, setStep] = useState("phone"); // 'phone' | 'otp' | 'name'
   const [loading, setLoading] = useState(false);
-  const [phone, setPhone] = useState("+91");
+  const [countryCode, setCountryCode] = useState("+91");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const phone = countryCode + phoneNumber; // full phone used for API calls
   const [otp, setOtp] = useState("");
   const [name, setName] = useState("");
   const [isNewUser, setIsNewUser] = useState(false);
@@ -152,6 +157,14 @@ export default function LoginPage() {
         </Link>
 
         <div className="card p-8 shadow-lg animate-slide-up">
+          {/* Session revoked banner */}
+          {wasRevoked && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium">
+              ⚠️ Your session was terminated by an administrator. Please login
+              again.
+            </div>
+          )}
+
           {/* Mode tabs */}
           <div className="flex bg-gray-100 rounded-xl p-1 mb-6">
             {["student", "admin"].map((m) => (
@@ -209,14 +222,11 @@ export default function LoginPage() {
                       Phone Number
                     </label>
                     <div className="flex gap-2">
-                      {/* Country code selector */}
+                      {/* Country code dropdown */}
                       <select
                         className="input w-28 flex-shrink-0 bg-gray-50 font-medium"
-                        value={phone.match(/^\+\d+/)?.[0] || "+91"}
-                        onChange={(e) => {
-                          const digits = phone.replace(/^\+\d+/, "");
-                          setPhone(e.target.value + digits);
-                        }}
+                        value={countryCode}
+                        onChange={(e) => setCountryCode(e.target.value)}
                       >
                         <option value="+91">🇮🇳 +91</option>
                         <option value="+1">🇺🇸 +1</option>
@@ -226,29 +236,24 @@ export default function LoginPage() {
                         <option value="+60">🇲🇾 +60</option>
                         <option value="+61">🇦🇺 +61</option>
                       </select>
-                      {/* Number input */}
+                      {/* Number only — no country code needed */}
                       <div className="relative flex-1">
                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
                           type="tel"
                           className="input pl-10 w-full"
                           placeholder="98765 43210"
-                          value={phone.replace(/^\+\d+/, "")}
-                          onChange={(e) => {
-                            const digits = e.target.value.replace(
-                              /[^\d\s]/g,
-                              "",
-                            );
-                            const code = phone.match(/^\+\d+/)?.[0] || "+91";
-                            setPhone(code + digits);
-                          }}
+                          value={phoneNumber}
+                          onChange={(e) =>
+                            setPhoneNumber(e.target.value.replace(/\D/g, ""))
+                          }
                           required
                           autoFocus
                         />
                       </div>
                     </div>
                     <p className="text-xs text-gray-400">
-                      Select your country code, then enter your number
+                      Select country code, then enter your 10-digit number
                     </p>
                   </div>
                   <button
