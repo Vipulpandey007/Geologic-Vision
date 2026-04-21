@@ -8,7 +8,7 @@
   }
 
   * { @apply border-gray-200; }
-  body { @apply text-gray-900; }
+  body { @apply text-gray-900 bg-white; }
   h1, h2, h3, h4, h5, h6 { @apply font-display; }
 }
 
@@ -16,37 +16,51 @@
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl
            bg-brand-600 text-white font-semibold text-sm
-           hover:bg-brand-700 active:scale-[0.98]
-           disabled:opacity-50 disabled:cursor-not-allowed
-           transition-all duration-150 shadow-sm;
+           hover:bg-brand-700 hover:shadow-lg hover:-translate-y-0.5
+           active:scale-[0.98]
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none
+           transition-all duration-200 shadow-sm will-change-transform;
   }
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl
            bg-white border border-gray-200 text-gray-700 font-semibold text-sm
-           hover:bg-gray-50 hover:border-gray-300
-           disabled:opacity-50 disabled:cursor-not-allowed
-           transition-all duration-150 shadow-sm;
+           hover:bg-gray-50 hover:border-gray-300 hover:shadow-md hover:-translate-y-0.5
+           active:scale-[0.98]
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none
+           transition-all duration-200 shadow-sm will-change-transform;
   }
   .btn-danger {
     @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl
            bg-red-600 text-white font-semibold text-sm
-           hover:bg-red-700 active:scale-[0.98]
-           disabled:opacity-50 disabled:cursor-not-allowed
-           transition-all duration-150 shadow-sm;
+           hover:bg-red-700 hover:shadow-lg hover:-translate-y-0.5
+           active:scale-[0.98]
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none
+           transition-all duration-200 shadow-sm will-change-transform;
   }
   .input {
     @apply w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white
            text-sm text-gray-900 placeholder:text-gray-400
-           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500
+           focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500
+           hover:border-gray-300
            disabled:bg-gray-50 disabled:text-gray-500
-           transition-colors duration-150;
+           transition-all duration-200 shadow-sm;
   }
   .card {
-    @apply bg-white rounded-2xl border border-gray-100 shadow-sm;
+    @apply bg-white rounded-2xl border border-gray-100 shadow-sm
+           hover:shadow-xl transition-all duration-300 will-change-transform;
   }
   .badge {
-    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold;
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold
+           shadow-sm transition-transform duration-200 hover:scale-105 will-change-transform;
   }
+}
+
+/* Glassmorphism utilities */
+.glass {
+  @apply bg-white border border-gray-100 shadow-sm;
+}
+.glass-dark {
+  @apply bg-gray-900 border border-gray-800 shadow-lg;
 }
 
 /* PDF viewer security */

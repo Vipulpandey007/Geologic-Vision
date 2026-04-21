@@ -16,7 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { formatCurrency, formatDate, getErrorMessage } from "@/lib/utils";
 
 export default function AdminDashboard() {
-  const { isReady } = useAuth("ADMIN");
+  const { isReady, user } = useAuth("ADMIN");
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -48,19 +48,19 @@ export default function AdminDashboard() {
           label: "Total Courses",
           value: stats.totalCourses,
           icon: BookOpen,
-          color: "text-brand-600 bg-brand-50",
+          color: "text-brand-700 bg-brand-100",
         },
         {
           label: "Total Students",
           value: stats.totalStudents,
           icon: Users,
-          color: "text-emerald-600 bg-emerald-50",
+          color: "text-emerald-700 bg-emerald-100",
         },
         {
           label: "Total Revenue",
           value: formatCurrency(stats.totalRevenue),
           icon: IndianRupee,
-          color: "text-amber-600 bg-amber-50",
+          color: "text-amber-700 bg-amber-100",
         },
         {
           label: "Avg. Per Student",
@@ -68,13 +68,28 @@ export default function AdminDashboard() {
             stats.totalRevenue / Math.max(stats.totalStudents, 1),
           ),
           icon: TrendingUp,
-          color: "text-purple-600 bg-purple-50",
+          color: "text-purple-700 bg-purple-100",
         },
       ]
     : [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Welcome Header */}
+      <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-gray-900">
+            Welcome back, {user?.name?.split(" ")[0] || "Admin"}!
+          </h1>
+          <p className="text-gray-500 mt-1">
+            Here's what's happening with your platform today.
+          </p>
+        </div>
+        <div className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-2 text-sm font-medium text-gray-600">
+          {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+        </div>
+      </div>
+
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {loading
@@ -88,7 +103,7 @@ export default function AdminDashboard() {
           : statCards.map(({ label, value, icon: Icon, color }) => (
               <div
                 key={label}
-                className="card p-5 hover:shadow-md transition-shadow"
+                className="card p-5 border border-transparent hover:border-gray-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
                 <div
                   className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${color}`}
@@ -134,7 +149,7 @@ export default function AdminDashboard() {
               </div>
             ) : (
               stats?.recentPurchases.map((purchase) => (
-                <div key={purchase.id} className="p-4 flex items-center gap-3">
+                <div key={purchase.id} className="p-4 flex items-center gap-3 hover:bg-gray-50 transition-colors">
                   <div className="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center text-brand-700 text-xs font-bold flex-shrink-0">
                     {(purchase.user.name ||
                       purchase.user.phone ||

@@ -19,6 +19,13 @@ import api from "@/lib/axios";
 import { saveTokens } from "@/lib/auth";
 import { useAuthStore } from "@/lib/store";
 import { getErrorMessage } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+
+const pageVariants = {
+  initial: { opacity: 0, x: 20 },
+  animate: { opacity: 1, x: 0, transition: { duration: 0.3 } },
+  exit: { opacity: 0, x: -20, transition: { duration: 0.2 } },
+};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -109,7 +116,7 @@ export default function LoginPage() {
       });
       saveTokens(data.accessToken, data.refreshToken);
       setUser(data.user);
-      toast.success("Welcome to EduPlatform, " + data.user.name + "!");
+      toast.success("Welcome to Geo Netra, " + data.user.name + "!");
       router.replace("/dashboard");
     } catch (err) {
       const msg = getErrorMessage(err);
@@ -153,10 +160,17 @@ export default function LoginPage() {
           href="/"
           className="flex items-center gap-2 justify-center mb-8 font-display font-bold text-xl text-brand-700"
         >
-          <BookOpen className="w-6 h-6" /> EduPlatform
+          <BookOpen className="w-6 h-6" /> Geo Netra
         </Link>
 
-        <div className="card p-8 shadow-lg animate-slide-up">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="card p-8 shadow-xl border-white/50 glass relative overflow-hidden"
+        >
+          {/* Subtle background animated gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-50/50 to-transparent pointer-events-none" />
           {/* Session revoked banner */}
           {wasRevoked && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium">
@@ -207,8 +221,17 @@ export default function LoginPage() {
               )}
 
               {/* STEP 1 — Phone */}
-              {step === "phone" && (
-                <form onSubmit={handleSendOtp} className="space-y-5">
+              <AnimatePresence mode="wait">
+                {step === "phone" && (
+                  <motion.form 
+                    key="step-phone"
+                    variants={pageVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    onSubmit={handleSendOtp} 
+                    className="space-y-5 relative"
+                  >
                   <div>
                     <h2 className="font-display text-2xl font-bold text-gray-900 mb-1">
                       Login or Sign up
@@ -272,12 +295,20 @@ export default function LoginPage() {
                       </>
                     )}
                   </button>
-                </form>
-              )}
+                  </motion.form>
+                )}
 
-              {/* STEP 2 — OTP */}
-              {step === "otp" && (
-                <form onSubmit={handleVerifyOtp} className="space-y-5">
+                {/* STEP 2 — OTP */}
+                {step === "otp" && (
+                  <motion.form 
+                    key="step-otp"
+                    variants={pageVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    onSubmit={handleVerifyOtp} 
+                    className="space-y-5 relative"
+                  >
                   <button
                     type="button"
                     onClick={resetStudentFlow}
@@ -356,12 +387,20 @@ export default function LoginPage() {
                       </>
                     )}
                   </button>
-                </form>
-              )}
+                  </motion.form>
+                )}
 
-              {/* STEP 3 — Name (new users only) */}
-              {step === "name" && (
-                <form onSubmit={handleCompleteSignup} className="space-y-5">
+                {/* STEP 3 — Name (new users only) */}
+                {step === "name" && (
+                  <motion.form 
+                    key="step-name"
+                    variants={pageVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    onSubmit={handleCompleteSignup} 
+                    className="space-y-5 relative"
+                  >
                   <button
                     type="button"
                     onClick={() => setStep("otp")}
@@ -430,14 +469,20 @@ export default function LoginPage() {
                       </>
                     )}
                   </button>
-                </form>
-              )}
+                  </motion.form>
+                )}
+              </AnimatePresence>
             </>
           )}
 
           {/* ─── ADMIN FLOW ───────────────────────────────────── */}
           {mode === "admin" && (
-            <form onSubmit={handleAdminLogin} className="space-y-5">
+            <motion.form 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              onSubmit={handleAdminLogin} 
+              className="space-y-5 relative"
+            >
               <div>
                 <h2 className="font-display text-2xl font-bold text-gray-900 mb-1">
                   Admin Login
@@ -455,7 +500,7 @@ export default function LoginPage() {
                   <input
                     type="email"
                     className="input pl-10"
-                    placeholder="admin@eduplatform.com"
+                    placeholder="admin@geonetra.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -494,9 +539,9 @@ export default function LoginPage() {
                   </>
                 )}
               </button>
-            </form>
+            </motion.form>
           )}
-        </div>
+        </motion.div>
 
         <p className="text-center text-xs text-gray-400 mt-5">
           By continuing, you agree to our Terms of Service and Privacy Policy

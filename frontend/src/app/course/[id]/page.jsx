@@ -13,6 +13,7 @@ import {
   Loader2,
   ChevronRight,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import api from "@/lib/axios";
 import { useAuthStore } from "@/lib/store";
 import { useAuth } from "@/hooks/useAuth";
@@ -147,9 +148,24 @@ export default function CoursePage() {
                   ({course.chapters.length} chapters)
                 </span>
               </h2>
-              <div className="space-y-3">
+              <motion.div 
+                initial="hidden" 
+                animate="visible" 
+                variants={{
+                  hidden: { opacity: 0 },
+                  visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+                }}
+                className="space-y-3"
+              >
                 {course.chapters.map((chapter, idx) => (
-                  <div key={chapter.id} className="card overflow-hidden">
+                  <motion.div 
+                    key={chapter.id} 
+                    variants={{
+                      hidden: { opacity: 0, x: -20 },
+                      visible: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+                    }}
+                    className="card overflow-hidden"
+                  >
                     <div className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-brand-100 text-brand-700 font-bold text-sm flex items-center justify-center flex-shrink-0">
@@ -199,14 +215,19 @@ export default function CoursePage() {
                         </div>
                       )}
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </div>
           </div>
 
           <div className="lg:col-span-1">
-            <div className="card p-6 sticky top-24">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="card p-6 sticky top-24"
+            >
               {course.isFree ? (
                 <div>
                   <div className="text-3xl font-display font-bold text-green-600 mb-1">
@@ -257,7 +278,7 @@ export default function CoursePage() {
                   </p>
                 </div>
               )}
-            </div>
+            </motion.div>
           </div>
         </div>
       </main>
