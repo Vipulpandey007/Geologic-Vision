@@ -9,7 +9,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata = {
-  title: "Geologic Vision — Learn Without Limits",
+  title: "Geo Netra — Learn Without Limits",
   description: "Access premium courses with secure, chapter-wise PDF content.",
 };
 

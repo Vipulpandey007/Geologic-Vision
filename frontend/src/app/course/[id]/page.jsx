@@ -62,7 +62,7 @@ export default function CoursePage() {
           order_id: data.order.id,
           amount: data.order.amount,
           currency: data.order.currency,
-          name: "Geologic Vision",
+          name: "Geo Netra",
           description: course.title,
           prefill: { contact: user.phone || "", email: user.email || "" },
           theme: { color: "#6172f3" },
@@ -148,9 +148,9 @@ export default function CoursePage() {
                   ({course.chapters.length} chapters)
                 </span>
               </h2>
-              <motion.div 
-                initial="hidden" 
-                animate="visible" 
+              <motion.div
+                initial="hidden"
+                animate="visible"
                 variants={{
                   hidden: { opacity: 0 },
                   visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
@@ -158,8 +158,8 @@ export default function CoursePage() {
                 className="space-y-3"
               >
                 {course.chapters.map((chapter, idx) => (
-                  <motion.div 
-                    key={chapter.id} 
+                  <motion.div
+                    key={chapter.id}
                     variants={{
                       hidden: { opacity: 0, x: -20 },
                       visible: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
@@ -222,7 +222,7 @@ export default function CoursePage() {
           </div>
 
           <div className="lg:col-span-1">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
